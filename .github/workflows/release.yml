@@ -17,8 +17,8 @@ jobs:
         with:
           python-version: "3.x"
 
-      # Pack the Met.no Nowcast dir as a zip and upload to the release
-      - name: ZIP Met.no Nowcast Dir
+      # Pack the Met.no next 6 hours forecast dir as a zip and upload to the release
+      - name: ZIP Met.no next 6 hours forecast Dir
         run: |
           cd ${{ github.workspace }}/custom_components/met-next-6-hours-forecast
           zip home-assistant-met-next-6-hours-forecast.zip -r ./

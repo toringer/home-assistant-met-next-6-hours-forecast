@@ -1,4 +1,4 @@
-"""Config flow for Met.no Nowcast integration."""
+"""Config flow for Met.no next 6 hours forecast integration."""
 from __future__ import annotations
 import logging
 import voluptuous as vol
@@ -8,12 +8,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.data_entry_flow import FlowResult
 from .met_api import MetApi
-from .const import (
-    DOMAIN,
-    NAME,
-    NotFound,
-    NoCoverage
-)
+from .const import DOMAIN, NAME, NotFound
 
 _LOGGER = logging.getLogger(__name__)
 STEP_USER_DATA_SCHEMA = vol.Schema(
@@ -29,16 +24,13 @@ async def validate_input(hass: HomeAssistant, lat: float, lon: float) -> dict[st
     """Validate the user input allows us to connect."""
 
     api = MetApi()
-    forecast = await hass.async_add_executor_job(api.get_complete, lat, lon)
-    radar_coverage = forecast["properties"]["meta"]["radar_coverage"]
-    if radar_coverage != "ok":
-        raise NoCoverage
+    await hass.async_add_executor_job(api.get_complete, lat, lon)
     return {"title": NAME}
 
 
 @config_entries.HANDLERS.register(DOMAIN)
-class MetNowcastConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Nowcast."""
+class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for Met.no next 6 hours forecast."""
 
     VERSION = 1
 
@@ -59,8 +51,6 @@ class MetNowcastConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await validate_input(self.hass, lat, lon)
         except NotFound:
             errors["base"] = "not_found"
-        except NoCoverage:
-            errors["base"] = "no_coverage"
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Unexpected exception")
             errors["base"] = "unknown"

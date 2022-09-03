@@ -1,4 +1,4 @@
-"""met.no now cast component."""
+"""Met.no next 6 hours forecast component."""
 from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -10,7 +10,7 @@ PLATFORMS: list[Platform] = [Platform.WEATHER]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Met.no Nowcast entry."""
+    """Set up entry."""
     if DOMAIN not in hass.data:
         hass.data[DOMAIN] = {}
 

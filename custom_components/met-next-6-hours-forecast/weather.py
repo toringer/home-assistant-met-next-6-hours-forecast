@@ -1,8 +1,7 @@
-"""Support for met.no nowcast weather service."""
+"""Support for Met.no next 6 hours forecast service."""
 
 import logging
-import datetime
-import random
+import pytz
 
 from homeassistant.const import (
     CONF_LATITUDE,
@@ -10,7 +9,7 @@ from homeassistant.const import (
     CONF_NAME,
     TEMP_CELSIUS,
     SPEED_METERS_PER_SECOND,
-    LENGTH_MILLIMETERS
+    LENGTH_MILLIMETERS,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -18,22 +17,17 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.util import dt as dt_util
+from random import randrange
+from datetime import datetime, timedelta
 from homeassistant.components.weather import (
     Forecast,
     WeatherEntity,
 )
 from .met_api import MetApi
-from .const import (
-    ATTRIBUTION,
-    DOMAIN,
-    NAME,
-    CONDITIONS_MAP,
-    ATTR_RADAR_COVERAGE,
-    ATTR_HAS_PRECIPITATION
-)
+from .const import ATTRIBUTION, DOMAIN, NAME, CONDITIONS_MAP
 
 _LOGGER = logging.getLogger(__name__)
-SCAN_INTERVAL = datetime.timedelta(minutes=7)
+SCAN_INTERVAL = timedelta(minutes=randrange(40, 50))
 
 
 async def async_setup_entry(
@@ -44,7 +38,7 @@ async def async_setup_entry(
     lat = entry.data[CONF_LATITUDE]
     lon = entry.data[CONF_LONGITUDE]
     name = entry.data[CONF_NAME]
-    sensors = [NowcastWeather(hass, api, name, lat, lon)]
+    sensors = [SixHoursWeather(hass, api, name, lat, lon)]
     async_add_entities(sensors, True)
 
 
@@ -56,12 +50,12 @@ def format_condition(condition: str) -> str:
     return condition
 
 
-class NowcastWeather(WeatherEntity):
-    """Representation of a Nowcast sensor."""
+class SixHoursWeather(WeatherEntity):
+    """Representation of a Met.no next 6 hours forecast sensor."""
 
     _attr_native_temperature_unit = TEMP_CELSIUS
     _attr_native_wind_speed_unit = SPEED_METERS_PER_SECOND
-    _attr_native_precipitation_unit= LENGTH_MILLIMETERS
+    _attr_native_precipitation_unit = LENGTH_MILLIMETERS
 
     def __init__(
         self,
@@ -70,7 +64,7 @@ class NowcastWeather(WeatherEntity):
         location_name: str,
         lat: float,
         lon: float,
-    ):
+    ) -> None:
         """Initialize the sensor."""
         self._hass = hass
         self._met_api = met_api
@@ -80,9 +74,6 @@ class NowcastWeather(WeatherEntity):
         self._raw_data = None
         self._forecast: list[Forecast] = None
         self._first_timeserie = None
-        self._radar_coverage = ""
-        self._has_precipitation = False
-
 
     @property
     def force_update(self) -> str:
@@ -92,7 +83,7 @@ class NowcastWeather(WeatherEntity):
     @property
     def unique_id(self) -> str:
         """Return unique ID."""
-        return f"nowcast-{self.location_name}"
+        return f"six-hours-forecast-{self.location_name}"
 
     @property
     def name(self) -> str:
@@ -115,7 +106,9 @@ class NowcastWeather(WeatherEntity):
     @property
     def native_pressure(self) -> float:
         """Return the pressure."""
-        return None
+        return self._first_timeserie["data"]["instant"]["details"][
+            "air_pressure_at_sea_level"
+        ]
 
     @property
     def humidity(self) -> float:
@@ -152,88 +145,53 @@ class NowcastWeather(WeatherEntity):
             entry_type=DeviceEntryType.SERVICE,
             name=f"{NAME}: {self.location_name}",
             manufacturer="Met.no",
-            model="Nowcast",
+            model="Met.no next 6 hours forecast",
             configuration_url="https://www.met.no/en",
         )
         return device_info
-
-    @property
-    def extra_state_attributes(self):
-        """Return the state attributes."""
-        return {
-            ATTR_RADAR_COVERAGE: self._radar_coverage,
-            ATTR_HAS_PRECIPITATION: self._has_precipitation
-        }
 
     async def async_update(self):
         """Retrieve latest state."""
         self._raw_data = await self._hass.async_add_executor_job(
             self._met_api.get_complete, self.lat, self.lon
         )
-        self._radar_coverage = self._raw_data["properties"]["meta"]["radar_coverage"]
+
         timeseries = self._raw_data["properties"]["timeseries"]
         self._forecast = []
-        self._has_precipitation = False
-
+        last_added_time = None
         for timeserie in timeseries:
-            details = timeserie["data"]["instant"]["details"]
-
-            temp = None
-            if "air_temperature" in details:
-                temp = details["air_temperature"]
-
-            precipitation_rate = None
-            if "precipitation_rate" in details:
-                precipitation_rate = details["precipitation_rate"]
-            if self.location_name == "debug":
-                precipitation_rate = random.randrange(30)
-            if precipitation_rate > 0:
-                self._has_precipitation = True
-
-            relative_humidity = None
-            if "relative_humidity" in details:
-                relative_humidity = details["relative_humidity"]
-
-            wind_from_direction = None
-            if "wind_from_direction" in details:
-                wind_from_direction = details["wind_from_direction"]
-
-            wind_speed = None
-            if "wind_speed" in details:
-                wind_speed = details["wind_speed"]
-
-            wind_speed_of_gust = None
-            if "wind_speed_of_gust" in details:
-                wind_speed_of_gust = details["wind_speed_of_gust"]
-
             time = dt_util.parse_datetime(timeserie["time"])
 
-            condition = None
-            if "next_1_hours" in timeserie["data"]:
-                condition = format_condition(
-                    timeserie["data"]["next_1_hours"]["summary"]["symbol_code"]
-                )
+            if time < datetime.utcnow().replace(tzinfo=pytz.UTC):
+                # skip forecast in the past
+                continue
 
-            if temp is not None:
+            if last_added_time is None or time >= last_added_time + timedelta(hours=6):
+                if "next_6_hours" not in timeserie["data"]:
+                    _LOGGER.debug("next_6_hours not found %s", time)
+                    continue
+
+                summary = timeserie["data"]["next_6_hours"]["summary"]
+                condition = format_condition(summary["symbol_code"])
+                details = timeserie["data"]["next_6_hours"]["details"]
+                current = timeserie["data"]["instant"]["details"]
+
                 self._forecast.append(
                     Forecast(
-                        temperature=temp,
-                        precipitation=precipitation_rate,
-                        relative_humidity=relative_humidity,
-                        wind_bearing=wind_from_direction,
-                        wind_speed=wind_speed,
-                        wind_speed_of_gust=wind_speed_of_gust,
+                        native_temperature=details["air_temperature_max"],
+                        native_templow=details["air_temperature_min"],
+                        native_precipitation=details["precipitation_amount"],
+                        precipitation_probability=details[
+                            "probability_of_precipitation"
+                        ],
                         datetime=time,
                         condition=condition,
+                        native_pressure=current["air_pressure_at_sea_level"],
+                        wind_bearing=current["wind_from_direction"],
+                        native_wind_speed=current["wind_speed"],
                     )
                 )
-            else:
-                self._forecast.append(
-                    Forecast(
-                        temperature=temp,
-                        precipitation=precipitation_rate,
-                        datetime=time,
-                    )
-                )
+                last_added_time = time
+
         self._first_timeserie = self._raw_data["properties"]["timeseries"][0]
-        _LOGGER.info(f"{self.location_name} updated")
+        _LOGGER.info("%s updated", self.location_name)

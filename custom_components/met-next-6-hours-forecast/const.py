@@ -1,4 +1,4 @@
-"""Constants for the met nowcast integration."""
+"""Constants for the Met.no next 6 hours forecast integration."""
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.components.weather import (
     ATTR_CONDITION_CLEAR_NIGHT,
@@ -13,14 +13,12 @@ from homeassistant.components.weather import (
     ATTR_CONDITION_SUNNY,
 )
 
-DOMAIN = "metnowcast"
-NAME = "Met.no Nowcast"
+DOMAIN = "met-next-6-hours-forecast"
+NAME = "Met.no next 6 hours forecast"
 ATTRIBUTION = (
     "Weather forecast from met.no, delivered by the Norwegian "
     "Meteorological Institute."
 )
-ATTR_RADAR_COVERAGE = "radar_coverage"
-ATTR_HAS_PRECIPITATION = "has_precipitation"
 CONDITIONS_MAP = {
     ATTR_CONDITION_CLEAR_NIGHT: {"clearsky_night"},
     ATTR_CONDITION_CLOUDY: {"cloudy_night", "cloudy_day", "cloudy"},
@@ -161,6 +159,3 @@ class InvalidAuth(HomeAssistantError):
 
 class NotFound(HomeAssistantError):
     """Error to indicate we cannot find weatcher information for the coordinate."""
-
-class NoCoverage(HomeAssistantError):
-    """No radar coverage."""
