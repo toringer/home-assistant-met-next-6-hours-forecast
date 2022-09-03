@@ -1,7 +1,7 @@
 {
   "domain": "met_next_6_hours_forecast",
   "name": "Met.no next 6 hours forecast",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "config_flow": true,
   "documentation": "https://github.com/toringer/home-assistant-met-next-6-hours-forecast",
   "issue_tracker": "https://github.com/toringer/home-assistant-met-next-6-hours-forecast/issues",
