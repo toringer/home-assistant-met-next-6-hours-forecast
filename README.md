@@ -9,6 +9,8 @@
 
 This component will add a weather sensor with data from [met.no](https://www.met.no/), similay to the default [met.no](https://www.home-assistant.io/integrations/met/) component, but using the next 6 hours forecast data.
 
+The weather forecast is delivered by the Norwegian Meteorological Institute and the NRK.
+
 
 ## Installation
 
