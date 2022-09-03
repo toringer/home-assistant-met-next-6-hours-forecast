@@ -20,14 +20,14 @@ jobs:
       # Pack the Met.no next 6 hours forecast dir as a zip and upload to the release
       - name: ZIP Met.no next 6 hours forecast Dir
         run: |
-          cd ${{ github.workspace }}/custom_components/met-next-6-hours-forecast
+          cd ${{ github.workspace }}/custom_components/met_next_6_hours_forecast
           zip home-assistant-met-next-6-hours-forecast.zip -r ./
       - name: Upload zip to release
         uses: svenstaro/upload-release-action@v1-release
 
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/custom_components/met-next-6-hours-forecast/home-assistant-met-next-6-hours-forecast.zip
+          file: ${{ github.workspace }}/custom_components/met_next_6_hours_forecast/home-assistant-met-next-6-hours-forecast.zip
           asset_name: home-assistant-met-next-6-hours-forecast.zip
           tag: ${{ github.ref }}
           overwrite: true
