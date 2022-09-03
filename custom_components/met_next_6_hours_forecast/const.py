@@ -13,7 +13,7 @@ from homeassistant.components.weather import (
     ATTR_CONDITION_SUNNY,
 )
 
-DOMAIN = "met-next-6-hours-forecast"
+DOMAIN = "met_next_6_hours_forecast"
 NAME = "Met.no next 6 hours forecast"
 ATTRIBUTION = (
     "Weather forecast from met.no, delivered by the Norwegian "

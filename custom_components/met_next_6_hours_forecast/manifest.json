@@ -1,5 +1,5 @@
 {
-  "domain": "met-next-6-hours-forecast",
+  "domain": "met_next_6_hours_forecast",
   "name": "Met.no next 6 hours forecast",
   "version": "1.0.1",
   "config_flow": true,
