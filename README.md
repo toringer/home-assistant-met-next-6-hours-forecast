@@ -25,4 +25,4 @@ The weather forecast is delivered by the Norwegian Meteorological Institute and 
 Configuration of the integration is done through Configuration > Integrations where you enter coordinates. 
 
 Enter the latitude and longitude as decimals for the selected location.
-![configure](configure.png)
+![configure](https://raw.githubusercontent.com/toringer/home-assistant-met-next-6-hours-forecast/master/configure.png)
