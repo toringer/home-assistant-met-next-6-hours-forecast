@@ -183,7 +183,9 @@ class SixHoursWeather(WeatherEntity):
                         native_precipitation=details["precipitation_amount"],
                         precipitation_probability=details[
                             "probability_of_precipitation"
-                        ],
+                        ]
+                        if "probability_of_precipitation" in details
+                        else None,
                         datetime=time,
                         condition=condition,
                         native_pressure=current["air_pressure_at_sea_level"],
