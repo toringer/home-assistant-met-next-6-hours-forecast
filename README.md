@@ -11,7 +11,7 @@ This component will add a weather sensor with data from [met.no](https://www.met
 
 The weather forecast is delivered by the Norwegian Meteorological Institute and the NRK.
 
-![Weather card](weather.png)
+![Weather card](https://raw.githubusercontent.com/toringer/home-assistant-met-next-6-hours-forecast/master/weather.png)
 
 ## Installation
 
