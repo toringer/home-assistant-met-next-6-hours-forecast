@@ -15,6 +15,7 @@ from homeassistant.components.weather import (
 
 DOMAIN = "met_next_6_hours_forecast"
 NAME = "Met.no next 6 hours forecast"
+VERSION = "1.0.0"
 ATTRIBUTION = (
     "Weather forecast from met.no, delivered by the Norwegian "
     "Meteorological Institute."

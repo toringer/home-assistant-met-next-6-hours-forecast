@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -e
+
+sed -i "s/VERSION =.*/VERSION = \"${1}\"/" custom_components/met_next_6_hours_forecast/const.py

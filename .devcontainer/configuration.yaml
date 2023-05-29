@@ -1,0 +1,12 @@
+default_config:
+
+logger:
+#  default: info
+  default: warning
+  logs:
+    custom_components.met_next_6_hours_forecast: debug
+
+# If you need to debug uncomment the line below (doc: https://www.home-assistant.io/integrations/debugpy/)
+#debugpy:
+#  start: true
+#  wait: false

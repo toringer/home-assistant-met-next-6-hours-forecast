@@ -2,32 +2,54 @@ name: Release
 
 on:
   release:
-    types: [published]
+    types:
+      - published
+  push:
+    branches:
+      - main
+      - master
 
 jobs:
   release_zip_file:
-    name: Prepare release asset
+    name: Publish zip file asset
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
+      - name: 📥 Checkout the repository
+        uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - name: 🛠️ Set up Python
+        uses: actions/setup-python@v4
         with:
           python-version: "3.x"
 
-      # Pack the Met.no next 6 hours forecast dir as a zip and upload to the release
-      - name: ZIP Met.no next 6 hours forecast Dir
+      - name: 🔢 Get version
+        id: version
+        uses: home-assistant/actions/helpers/version@master
+
+      - name: 🔢 Set version number
+        run: |
+          python3 ${{ github.workspace }}/scripts/update_manifest.py --version ${{ steps.version.outputs.version }}
+          bash ${{ github.workspace }}/scripts/update_const ${{ steps.version.outputs.version }}
+
+      - name: 📤 Upload zip to action
+        uses: actions/upload-artifact@v3.1.2
+        if: ${{ github.event_name == 'push' }}
+        with:
+          name: met_next_6_hours_forecast
+          path: ${{ github.workspace }}/custom_components/met_next_6_hours_forecast
+
+      # Pack the dir as a zip and upload to the release
+      - name: 📦 ZIP Dir
+        if: ${{ github.event_name == 'release' }}
         run: |
           cd ${{ github.workspace }}/custom_components/met_next_6_hours_forecast
-          zip home-assistant-met-next-6-hours-forecast.zip -r ./
-      - name: Upload zip to release
-        uses: svenstaro/upload-release-action@v1-release
+          zip met_next_6_hours_forecast.zip -r ./
 
+      - name: 📤 Upload zip to release
+        uses: softprops/action-gh-release@v1
+        if: ${{ github.event_name == 'release' }}
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/custom_components/met_next_6_hours_forecast/home-assistant-met-next-6-hours-forecast.zip
-          asset_name: home-assistant-met-next-6-hours-forecast.zip
-          tag: ${{ github.ref }}
-          overwrite: true
+          files: ${{ github.workspace }}/custom_components/met_next_6_hours_forecast/met_next_6_hours_forecast.zip
+

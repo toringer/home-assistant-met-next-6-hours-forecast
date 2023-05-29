@@ -1,4 +1,4 @@
-name-template: "Example title - v$NEXT_PATCH_VERSION"
+name-template: "v$NEXT_PATCH_VERSION"
 tag-template: "v$NEXT_PATCH_VERSION"
 exclude-labels:
   - "skip-changelog"
@@ -25,8 +25,6 @@ change-title-escapes: '\<*_&' # You can add # and @ to disable mentions, and add
 
 template: |
   [![Downloads for this release](https://img.shields.io/github/downloads/toringer/home-assistant-met-next-6-hours-forecast/v$RESOLVED_VERSION/total.svg)](https://github.com/toringer/home-assistant-met-next-6-hours-forecast/releases/v$RESOLVED_VERSION)
-
-  ### Don't forget to bump version before releasing new version
 
   ## Changes
 
