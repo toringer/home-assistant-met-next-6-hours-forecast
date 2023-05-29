@@ -20,6 +20,7 @@ ATTRIBUTION = (
     "Weather forecast from met.no, delivered by the Norwegian "
     "Meteorological Institute."
 )
+ATTR_FORECAST_JSON = "forecast_json"
 CONDITIONS_MAP = {
     ATTR_CONDITION_CLEAR_NIGHT: {"clearsky_night"},
     ATTR_CONDITION_CLOUDY: {"cloudy_night", "cloudy_day", "cloudy"},

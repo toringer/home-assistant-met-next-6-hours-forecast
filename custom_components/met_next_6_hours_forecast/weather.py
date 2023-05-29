@@ -1,7 +1,11 @@
 """Support for Met.no next 6 hours forecast service."""
-
 import logging
+import json
+from datetime import datetime, timedelta
+from random import randrange
 import pytz
+
+
 
 from homeassistant.const import (
     CONF_LATITUDE,
@@ -17,14 +21,12 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceEntryType
 from homeassistant.util import dt as dt_util
-from random import randrange
-from datetime import datetime, timedelta
 from homeassistant.components.weather import (
     Forecast,
     WeatherEntity,
 )
 from .met_api import MetApi
-from .const import ATTRIBUTION, DOMAIN, NAME, CONDITIONS_MAP
+from .const import ATTR_FORECAST_JSON, ATTRIBUTION, DOMAIN, NAME, CONDITIONS_MAP
 
 _LOGGER = logging.getLogger(__name__)
 SCAN_INTERVAL = timedelta(minutes=randrange(40, 50))
@@ -74,6 +76,7 @@ class SixHoursWeather(WeatherEntity):
         self._raw_data = None
         self._forecast: list[Forecast] = None
         self._first_timeserie = None
+        self._forecast_json = {}
 
     @property
     def force_update(self) -> str:
@@ -133,6 +136,13 @@ class SixHoursWeather(WeatherEntity):
         return ATTRIBUTION
 
     @property
+    def extra_state_attributes(self):
+        """Return the state attributes."""
+        return {
+            ATTR_FORECAST_JSON: self._forecast_json
+        }
+
+    @property
     def forecast(self) -> list[Forecast]:
         """Return the forecast array."""
         return self._forecast
@@ -149,6 +159,12 @@ class SixHoursWeather(WeatherEntity):
             configuration_url="https://www.met.no/en",
         )
         return device_info
+
+    def serialize_datetime(self, obj):
+        """serialize datetime to json"""
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        raise TypeError("Type not serializable")
 
     async def async_update(self):
         """Retrieve latest state."""
@@ -194,6 +210,8 @@ class SixHoursWeather(WeatherEntity):
                     )
                 )
                 last_added_time = time
-
+        self._forecast_json = json.dumps(
+            self._forecast, default=self.serialize_datetime
+        )
         self._first_timeserie = self._raw_data["properties"]["timeseries"][0]
         _LOGGER.info("%s updated", self.location_name)
