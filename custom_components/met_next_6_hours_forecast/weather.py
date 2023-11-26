@@ -24,6 +24,7 @@ from homeassistant.util import dt as dt_util
 from homeassistant.components.weather import (
     Forecast,
     WeatherEntity,
+    WeatherEntityFeature,
 )
 from .met_api import MetApi
 from .const import ATTR_FORECAST_JSON, ATTRIBUTION, DOMAIN, NAME, CONDITIONS_MAP
@@ -58,6 +59,7 @@ class SixHoursWeather(WeatherEntity):
     _attr_native_temperature_unit = TEMP_CELSIUS
     _attr_native_wind_speed_unit = SPEED_METERS_PER_SECOND
     _attr_native_precipitation_unit = LENGTH_MILLIMETERS
+    _attr_supported_features = WeatherEntityFeature.FORECAST_HOURLY
 
     def __init__(
         self,
@@ -165,6 +167,12 @@ class SixHoursWeather(WeatherEntity):
         if isinstance(obj, datetime):
             return obj.isoformat()
         raise TypeError("Type not serializable")
+
+    async def async_forecast_hourly(self) -> list[Forecast] | None:
+        """Return the hourly forecast in native units.
+        Only implement this method if `WeatherEntityFeature.FORECAST_HOURLY` is set
+        """
+        return self._forecast
 
     async def async_update(self):
         """Retrieve latest state."""
