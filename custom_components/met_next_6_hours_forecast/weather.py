@@ -11,9 +11,9 @@ from homeassistant.const import (
     CONF_LATITUDE,
     CONF_LONGITUDE,
     CONF_NAME,
-    TEMP_CELSIUS,
-    SPEED_METERS_PER_SECOND,
-    LENGTH_MILLIMETERS,
+    UnitOfTemperature,
+    UnitOfSpeed,
+    UnitOfLength,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -56,9 +56,9 @@ def format_condition(condition: str) -> str:
 class SixHoursWeather(WeatherEntity):
     """Representation of a Met.no next 6 hours forecast sensor."""
 
-    _attr_native_temperature_unit = TEMP_CELSIUS
-    _attr_native_wind_speed_unit = SPEED_METERS_PER_SECOND
-    _attr_native_precipitation_unit = LENGTH_MILLIMETERS
+    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_native_wind_speed_unit = UnitOfSpeed.METERS_PER_SECOND
+    _attr_native_precipitation_unit = UnitOfLength.MILLIMETERS
     _attr_supported_features = WeatherEntityFeature.FORECAST_HOURLY
 
     def __init__(
@@ -210,7 +210,7 @@ class SixHoursWeather(WeatherEntity):
                         ]
                         if "probability_of_precipitation" in details
                         else None,
-                        datetime=time,
+                        datetime=time.strftime("%Y-%m-%dT%H:%M:%S+00:00"),
                         condition=condition,
                         native_pressure=current["air_pressure_at_sea_level"],
                         wind_bearing=current["wind_from_direction"],
