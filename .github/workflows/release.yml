@@ -48,7 +48,7 @@ jobs:
           zip met_next_6_hours_forecast.zip -r ./
 
       - name: 📤 Upload zip to release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: ${{ github.event_name == 'release' }}
         with:
           files: ${{ github.workspace }}/custom_components/met_next_6_hours_forecast/met_next_6_hours_forecast.zip
